@@ -82,7 +82,7 @@
             </section>
 
             <section class="screen dashboard-screen" id="dashboard" aria-labelledby="dashboard-title">
-                <div class="screen-topline"><span>03 / YOUR OVERVIEW</span><span class="avatar" aria-label="Passenger profile">P</span></div>
+                <div class="screen-topline"><span>03 / YOUR OVERVIEW</span><span class="avatar" id="dashboard-avatar" aria-label="Passenger profile">P</span></div>
                 <div class="screen-content dashboard-content">
                     <p class="eyebrow">TUESDAY, OCTOBER 14</p>
                     <h2 id="dashboard-title">Hi, Passenger<span class="period">.</span></h2>
@@ -96,24 +96,110 @@
 
                     <div class="section-heading"><h3>Quick actions</h3><span>GET MOVING</span></div>
                     <div class="actions-grid">
-                        <button class="action-tile" type="button" data-message="Trip booking is coming soon."><span class="action-icon" aria-hidden="true">＋</span><span><strong>Plan a trip</strong><small>Find your next ride</small></span><span class="tile-arrow" aria-hidden="true">↗</span></button>
-                        <button class="action-tile" type="button" data-message="Your ride history will appear here after your first trip."><span class="action-icon history-icon" aria-hidden="true">◷</span><span><strong>Trip history</strong><small>Review past rides</small></span><span class="tile-arrow" aria-hidden="true">↗</span></button>
+                        <button class="action-tile" type="button" data-screen="book"><span class="action-icon" aria-hidden="true">＋</span><span><strong>Plan a trip</strong><small>Find your next ride</small></span><span class="tile-arrow" aria-hidden="true">↗</span></button>
+                        <button class="action-tile" type="button" data-screen="rides"><span class="action-icon history-icon" aria-hidden="true">◷</span><span><strong>Trip history</strong><small>Review past rides</small></span><span class="tile-arrow" aria-hidden="true">↗</span></button>
                     </div>
 
                     <div class="section-heading recent-heading"><h3>Recent trips</h3><span>LAST 30 DAYS</span></div>
                     <div class="empty-trips"><span class="empty-icon" aria-hidden="true">⌁</span><div><strong>None</strong><p>Your recent trips will show up here.</p></div></div>
 
-                    <button class="button button-primary plan-button" type="button" data-message="Trip booking is coming soon.">Plan a new trip <span aria-hidden="true">→</span></button>
-                    <nav class="bottom-nav" aria-label="Main navigation">
-                        <button class="nav-item active" type="button" aria-current="page"><span aria-hidden="true">⌂</span>Home</button>
-                        <button class="nav-item" type="button" data-message="Trip booking is coming soon."><span aria-hidden="true">＋</span>Book</button>
-                        <button class="nav-item" type="button" data-message="Your ride history will appear here after your first trip."><span aria-hidden="true">◷</span>Rides</button>
-                        <button class="nav-item" type="button" data-message="You're all caught up."><span aria-hidden="true">♧</span>Updates</button>
-                        <button class="nav-item" type="button" data-screen="login"><span aria-hidden="true">○</span>Profile</button>
-                    </nav>
+                    <button class="button button-primary plan-button" type="button" data-screen="book">Plan a new trip <span aria-hidden="true">→</span></button>
+                </div>
+            </section>
+
+            <section class="screen app-screen" id="book" aria-labelledby="book-title">
+                <div class="screen-topline"><span>04 / BOOK A RIDE</span><span class="avatar" aria-hidden="true">＋</span></div>
+                <div class="screen-content page-content">
+                    <p class="eyebrow">YOUR NEXT JOURNEY</p>
+                    <h2 id="book-title">Plan a trip<span class="period">.</span></h2>
+                    <p class="intro">Choose where and when. Your ride request will appear in Upcoming rides.</p>
+                    <div class="page-columns">
+                        <form id="book-form" class="form-stack page-form">
+                            <div class="field-pair">
+                                <div><label for="pickup-location">Pickup location</label><input id="pickup-location" name="pickup" type="text" placeholder="Street, landmark, or barangay" required></div>
+                                <div><label for="dropoff-location">Destination</label><input id="dropoff-location" name="destination" type="text" placeholder="Where are you going?" required></div>
+                            </div>
+                            <div class="field-pair">
+                                <div><label for="pickup-date">Pickup date</label><input id="pickup-date" name="date" type="date" required></div>
+                                <div><label for="pickup-time">Pickup time</label><input id="pickup-time" name="time" type="time" required></div>
+                            </div>
+                            <label for="ride-type">Ride type</label>
+                            <select id="ride-type" name="rideType">
+                                <option value="Standard">Standard ride</option>
+                                <option value="Shared">Shared ride</option>
+                                <option value="Private">Private ride</option>
+                            </select>
+                            <label for="ride-notes">Notes for your driver <span class="optional-label">OPTIONAL</span></label>
+                            <textarea id="ride-notes" name="notes" rows="3" placeholder="Pickup instructions or other details"></textarea>
+                            <button class="button button-primary" type="submit">Request ride <span aria-hidden="true">→</span></button>
+                        </form>
+                        <aside class="info-panel">
+                            <span class="info-icon" aria-hidden="true">↗</span>
+                            <h3>Ride details</h3>
+                            <p>Your driver will confirm the fare and pickup details after reviewing your request.</p>
+                            <div class="info-divider"></div>
+                            <span class="info-label">FARE</span>
+                            <strong class="fare-pending">Confirmed by driver</strong>
+                        </aside>
+                    </div>
+                </div>
+            </section>
+
+            <section class="screen app-screen" id="rides" aria-labelledby="rides-title">
+                <div class="screen-topline"><span>05 / YOUR RIDES</span><span class="avatar" aria-hidden="true">◷</span></div>
+                <div class="screen-content page-content">
+                    <p class="eyebrow">ALL JOURNEYS IN ONE PLACE</p>
+                    <h2 id="rides-title">Your rides<span class="period">.</span></h2>
+                    <p class="intro">Track upcoming requests and look back on previous trips.</p>
+                    <div class="page-toolbar">
+                        <div class="filter-switch" role="group" aria-label="Filter rides">
+                            <button class="filter-option selected" type="button" data-ride-filter="upcoming" aria-pressed="true">Upcoming <span id="upcoming-count">0</span></button>
+                            <button class="filter-option" type="button" data-ride-filter="history" aria-pressed="false">History</button>
+                        </div>
+                        <button class="button button-outline compact-button" type="button" data-screen="book">＋ Book a ride</button>
+                    </div>
+                    <div class="ride-list" id="ride-list" aria-live="polite"></div>
+                </div>
+            </section>
+
+            <section class="screen app-screen" id="updates" aria-labelledby="updates-title">
+                <div class="screen-topline"><span>06 / NOTIFICATIONS</span><span class="avatar" aria-hidden="true">♧</span></div>
+                <div class="screen-content page-content">
+                    <p class="eyebrow">STAY IN THE LOOP</p>
+                    <div class="page-title-row"><div><h2 id="updates-title">Updates<span class="period">.</span></h2><p class="intro">Ride requests and account activity.</p></div><button id="mark-updates-read" class="text-button" type="button">Mark all read</button></div>
+                    <div class="notification-list" id="notification-list" aria-live="polite"></div>
+                </div>
+            </section>
+
+            <section class="screen app-screen" id="profile" aria-labelledby="profile-title">
+                <div class="screen-topline"><span>07 / YOUR ACCOUNT</span><span class="avatar" id="profile-avatar" aria-hidden="true">P</span></div>
+                <div class="screen-content page-content">
+                    <p class="eyebrow">ACCOUNT DETAILS</p>
+                    <h2 id="profile-title">Your profile<span class="period">.</span></h2>
+                    <p class="intro">Manage the details associated with your rides.</p>
+                    <form id="profile-form" class="form-stack page-form profile-form">
+                        <label for="profile-name">Full name</label><input id="profile-name" name="fullName" type="text" autocomplete="name" required>
+                        <div class="field-pair">
+                            <div><label for="profile-mobile">Mobile number</label><input id="profile-mobile" name="mobile" type="tel" autocomplete="tel" required></div>
+                            <div><label for="profile-email">Email</label><input id="profile-email" name="email" type="email" autocomplete="email" required></div>
+                        </div>
+                        <div class="field-pair">
+                            <div><label for="profile-city">Municipality / city</label><input id="profile-city" name="municipality" type="text" autocomplete="address-level2"></div>
+                            <div><label for="profile-barangay">Barangay</label><input id="profile-barangay" name="barangay" type="text" autocomplete="address-level3"></div>
+                        </div>
+                        <button class="button button-primary" type="submit">Save changes <span aria-hidden="true">→</span></button>
+                        <button class="button button-outline logout-button" type="button" id="logout-button">Log out</button>
+                    </form>
                 </div>
             </section>
         </div>
+        <nav class="bottom-nav" aria-label="Main navigation" hidden>
+            <button class="nav-item" type="button" data-screen="dashboard"><span aria-hidden="true">⌂</span>Home</button>
+            <button class="nav-item" type="button" data-screen="book"><span aria-hidden="true">＋</span>Book</button>
+            <button class="nav-item" type="button" data-screen="rides"><span aria-hidden="true">◷</span>Rides</button>
+            <button class="nav-item" type="button" data-screen="updates"><span aria-hidden="true">♧</span>Updates</button>
+            <button class="nav-item" type="button" data-screen="profile"><span aria-hidden="true">○</span>Profile</button>
+        </nav>
         <div class="toast" role="status" aria-live="polite"></div>
     </main>
     <script src="script.js"></script>
