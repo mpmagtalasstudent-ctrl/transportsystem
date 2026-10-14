@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#092b45">
+    <title>Local Transport Service</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <main class="workspace">
+        <header class="workspace-header">
+            <a class="brand" href="#login" aria-label="Local Transport Service home">
+                <span class="brand-mark" aria-hidden="true">L</span>
+                <span>Local Transport <span class="brand-light">Service</span></span>
+            </a>
+            <span class="prototype-label"><span class="status-dot"></span> Passenger portal</span>
+        </header>
+
+        <div class="screens" aria-label="Transport service screens">
+            <section class="screen login-screen is-active" id="login" aria-labelledby="login-title">
+                <div class="screen-topline"><span>01 / ACCESS</span><span class="screen-icon" aria-hidden="true">↗</span></div>
+                <div class="screen-content">
+                    <p class="eyebrow">LOCAL TRANSPORT SERVICE</p>
+                    <h1 id="login-title">Welcome back<span class="period">.</span></h1>
+                    <p class="intro">Log in to book or manage your local rides.</p>
+
+                    <div class="role-switch" role="group" aria-label="Choose account type">
+                        <button class="role-option selected" type="button" aria-pressed="true">Passenger</button>
+                        <button class="role-option" type="button" aria-pressed="false">Driver</button>
+                    </div>
+
+                    <form class="form-stack" id="login-form">
+                        <label for="login-identity">Email or mobile number</label>
+                        <div class="input-wrap"><span aria-hidden="true">✉</span><input id="login-identity" name="identity" type="text" autocomplete="username" placeholder="you@example.com" required></div>
+                        <label for="login-password">Password</label>
+                        <div class="input-wrap"><span aria-hidden="true">⌑</span><input id="login-password" name="password" type="password" autocomplete="current-password" placeholder="Enter your password" required></div>
+                        <div class="form-options">
+                            <label class="check-label"><input type="checkbox" name="remember"> <span>Remember me</span></label>
+                            <button class="text-button" type="button" data-message="Password recovery is not connected in this preview.">Forgot password?</button>
+                        </div>
+                        <button class="button button-primary" type="submit">Log in <span aria-hidden="true">→</span></button>
+                    </form>
+
+                    <div class="screen-footer">
+                        <span>New to the service?</span>
+                        <button class="button button-outline" type="button" data-screen="create">Create an account <span aria-hidden="true">↗</span></button>
+                    </div>
+                </div>
+            </section>
+
+            <section class="screen create-screen" id="create" aria-labelledby="create-title">
+                <div class="screen-topline"><span>02 / JOIN</span><button class="back-button" type="button" data-screen="login" aria-label="Back to login">←</button></div>
+                <div class="screen-content">
+                    <p class="eyebrow">A BETTER WAY TO GET THERE</p>
+                    <h2 id="create-title">Create an account<span class="period">.</span></h2>
+                    <p class="intro">A few details, then you're ready to ride.</p>
+
+                    <form class="form-stack account-form" id="account-form">
+                        <label for="full-name">Full name</label>
+                        <input id="full-name" name="fullName" type="text" placeholder="Your name" autocomplete="name" required>
+                        <div class="field-pair">
+                            <div><label for="mobile">Mobile number</label><input id="mobile" name="mobile" type="tel" placeholder="+63 9XX XXX XXXX" autocomplete="tel" required></div>
+                            <div><label for="email">Email</label><input id="email" name="email" type="email" placeholder="you@example.com" autocomplete="email" required></div>
+                        </div>
+                        <label for="account-password">Password</label>
+                        <input id="account-password" name="password" type="password" placeholder="At least 8 characters" autocomplete="new-password" minlength="8" required>
+                        <label for="confirm-password">Confirm password</label>
+                        <input id="confirm-password" name="confirmPassword" type="password" placeholder="Enter your password again" autocomplete="new-password" minlength="8" required>
+                        <div class="field-pair">
+                            <div><label for="municipality">Municipality / city</label><input id="municipality" name="municipality" type="text" placeholder="Your city" autocomplete="address-level2" required></div>
+                            <div><label for="barangay">Barangay</label><input id="barangay" name="barangay" type="text" placeholder="Your barangay" autocomplete="address-level3" required></div>
+                        </div>
+                        <label class="check-label terms-check"><input type="checkbox" name="terms" required> <span>I agree to the <a href="#terms" data-message="Terms and privacy details are not connected in this preview.">Terms</a> and <a href="#privacy" data-message="Terms and privacy details are not connected in this preview.">Privacy Policy</a></span></label>
+                        <button class="button button-primary" type="submit">Create account <span aria-hidden="true">→</span></button>
+                    </form>
+                    <p class="login-prompt">Already have an account? <button class="text-button" type="button" data-screen="login">Log in</button></p>
+                </div>
+            </section>
+
+            <section class="screen dashboard-screen" id="dashboard" aria-labelledby="dashboard-title">
+                <div class="screen-topline"><span>03 / YOUR OVERVIEW</span><span class="avatar" aria-label="Passenger profile">P</span></div>
+                <div class="screen-content dashboard-content">
+                    <p class="eyebrow">TUESDAY, OCTOBER 14</p>
+                    <h2 id="dashboard-title">Hi, Passenger<span class="period">.</span></h2>
+                    <p class="intro">Your next ride starts here.</p>
+
+                    <div class="stats-grid" aria-label="Ride summary">
+                        <article class="stat"><span class="stat-icon" aria-hidden="true">↗</span><strong>0</strong><span>Trips this month</span></article>
+                        <article class="stat"><span class="stat-icon" aria-hidden="true">₱</span><strong>₱0</strong><span>Total fare spent</span></article>
+                        <article class="stat"><span class="stat-icon" aria-hidden="true">✦</span><strong>0</strong><span>Upcoming trips</span></article>
+                    </div>
+
+                    <div class="section-heading"><h3>Quick actions</h3><span>GET MOVING</span></div>
+                    <div class="actions-grid">
+                        <button class="action-tile" type="button" data-message="Trip booking is coming soon."><span class="action-icon" aria-hidden="true">＋</span><span><strong>Plan a trip</strong><small>Find your next ride</small></span><span class="tile-arrow" aria-hidden="true">↗</span></button>
+                        <button class="action-tile" type="button" data-message="Your ride history will appear here after your first trip."><span class="action-icon history-icon" aria-hidden="true">◷</span><span><strong>Trip history</strong><small>Review past rides</small></span><span class="tile-arrow" aria-hidden="true">↗</span></button>
+                    </div>
+
+                    <div class="section-heading recent-heading"><h3>Recent trips</h3><span>LAST 30 DAYS</span></div>
+                    <div class="empty-trips"><span class="empty-icon" aria-hidden="true">⌁</span><div><strong>None</strong><p>Your recent trips will show up here.</p></div></div>
+
+                    <button class="button button-primary plan-button" type="button" data-message="Trip booking is coming soon.">Plan a new trip <span aria-hidden="true">→</span></button>
+                    <nav class="bottom-nav" aria-label="Main navigation">
+                        <button class="nav-item active" type="button" aria-current="page"><span aria-hidden="true">⌂</span>Home</button>
+                        <button class="nav-item" type="button" data-message="Trip booking is coming soon."><span aria-hidden="true">＋</span>Book</button>
+                        <button class="nav-item" type="button" data-message="Your ride history will appear here after your first trip."><span aria-hidden="true">◷</span>Rides</button>
+                        <button class="nav-item" type="button" data-message="You're all caught up."><span aria-hidden="true">♧</span>Updates</button>
+                        <button class="nav-item" type="button" data-screen="login"><span aria-hidden="true">○</span>Profile</button>
+                    </nav>
+                </div>
+            </section>
+        </div>
+        <div class="toast" role="status" aria-live="polite"></div>
+    </main>
+    <script src="script.js"></script>
+</body>
+</html>
