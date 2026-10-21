@@ -8,6 +8,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -133,10 +134,18 @@
                             <textarea id="ride-notes" name="notes" rows="3" placeholder="Pickup instructions or other details"></textarea>
                             <button class="button button-primary" type="submit">Request ride <span aria-hidden="true">→</span></button>
                         </form>
-                        <aside class="info-panel">
-                            <span class="info-icon" aria-hidden="true">↗</span>
-                            <h3>Ride details</h3>
-                            <p>Your driver will confirm the fare and pickup details after reviewing your request.</p>
+                        <aside class="map-panel">
+                            <div class="map-panel-heading">
+                                <div><span class="info-label">ROUTE PLANNER</span><h3>Choose locations</h3></div>
+                                <span class="map-region">DUMAGUETE</span>
+                            </div>
+                            <div class="map-target-switch" role="group" aria-label="Choose which location to set">
+                                <button class="map-target selected" type="button" data-map-target="pickup" aria-pressed="true"><span class="map-pin pickup-pin" aria-hidden="true"></span> Pickup</button>
+                                <button class="map-target" type="button" data-map-target="destination" aria-pressed="false"><span class="map-pin destination-pin" aria-hidden="true"></span> Destination</button>
+                            </div>
+                            <div id="ride-map" role="application" aria-label="OpenStreetMap location picker"></div>
+                            <p class="map-status" id="map-status" role="status">Choose a location, then click the map.</p>
+                            <p class="map-attribution">Map data &copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap contributors</a></p>
                             <div class="info-divider"></div>
                             <span class="info-label">FARE</span>
                             <strong class="fare-pending">Confirmed by driver</strong>
@@ -202,6 +211,7 @@
         </nav>
         <div class="toast" role="status" aria-live="polite"></div>
     </main>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
     <script src="script.js"></script>
 </body>
 </html>

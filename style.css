@@ -815,9 +815,119 @@ h2 {
 
 .page-columns {
 	display: grid;
-	grid-template-columns: minmax(0, 1fr) 300px;
+	grid-template-columns: minmax(0, 1.15fr) minmax(360px, 0.85fr);
 	align-items: start;
 	gap: 28px;
+}
+
+.map-panel {
+	min-width: 0;
+	padding: 16px;
+	border: 1px solid var(--line);
+	border-radius: 8px;
+	background: rgba(18, 61, 89, 0.62);
+}
+
+.map-panel-heading {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 12px;
+	margin-bottom: 14px;
+}
+
+.map-panel-heading .info-label {
+	margin: 0 0 5px;
+}
+
+.map-panel-heading h3 {
+	margin: 0;
+	font-family: 'Manrope', sans-serif;
+	font-size: 16px;
+}
+
+.map-region {
+	padding: 6px 8px;
+	border: 1px solid var(--line);
+	border-radius: 5px;
+	color: var(--muted);
+	font-size: 8px;
+	font-weight: 700;
+	letter-spacing: 0.1em;
+}
+
+.map-target-switch {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	gap: 5px;
+	margin-bottom: 10px;
+	padding: 4px;
+	border-radius: 6px;
+	background: rgba(4, 22, 36, 0.48);
+}
+
+.map-target {
+	display: flex;
+	min-width: 0;
+	min-height: 36px;
+	align-items: center;
+	justify-content: center;
+	gap: 7px;
+	border: 0;
+	border-radius: 4px;
+	background: transparent;
+	color: var(--muted);
+	cursor: pointer;
+	font-size: 10px;
+	font-weight: 700;
+}
+
+.map-target.selected {
+	background: #1c4d70;
+	color: var(--ink);
+}
+
+.map-pin {
+	width: 8px;
+	height: 8px;
+	border: 2px solid #fff;
+	border-radius: 50%;
+	background: #44d4b4;
+	box-shadow: 0 0 0 2px rgba(68, 212, 180, 0.25);
+}
+
+.destination-pin {
+	background: #f3a36f;
+	box-shadow: 0 0 0 2px rgba(243, 163, 111, 0.25);
+}
+
+#ride-map {
+	width: 100%;
+	height: 350px;
+	border: 1px solid rgba(14, 47, 67, 0.3);
+	border-radius: 6px;
+	background: #dbe7e6;
+}
+
+#ride-map .leaflet-control-attribution {
+	font-size: 9px;
+}
+
+.map-status {
+	min-height: 16px;
+	margin: 9px 0 2px;
+	color: var(--muted);
+	font-size: 10px;
+}
+
+.map-attribution {
+	margin: 5px 0 12px;
+	color: var(--soft);
+	font-size: 9px;
+}
+
+.map-attribution a {
+	color: var(--muted);
 }
 
 .page-form {
@@ -1215,6 +1325,11 @@ a:focus-visible {
 	.create-screen .login-prompt {
 		margin-top: 22px;
 	}
+
+	.page-columns {
+		grid-template-columns: minmax(0, 1fr) minmax(300px, 0.9fr);
+		gap: 18px;
+	}
 }
 
 @media (max-width: 480px) {
@@ -1356,6 +1471,10 @@ a:focus-visible {
 	.page-columns {
 		grid-template-columns: 1fr;
 		gap: 18px;
+	}
+
+	#ride-map {
+		height: 300px;
 	}
 
 	.info-panel {

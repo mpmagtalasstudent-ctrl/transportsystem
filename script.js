@@ -8,6 +8,11 @@ const storageKeys = {
 };
 let toastTimeout;
 let activeRideFilter = 'upcoming';
+let rideMap;
+let activeMapTarget = 'pickup';
+let routeLine;
+const mapPoints = { pickup: null, destination: null };
+const mapMarkers = { pickup: null, destination: null };
 
 function readStored(key, fallback) {
 	try {
@@ -38,6 +43,12 @@ function showScreen(screenName) {
 		screen.classList.toggle('is-active', isActive);
 		screen.setAttribute('aria-hidden', String(!isActive));
 	});
+	if (screenName === 'book') {
+		requestAnimationFrame(() => {
+			initializeRideMap();
+			rideMap?.invalidateSize();
+		});
+	}
 
 	const isAuthenticatedView = !['login', 'create'].includes(screenName);
 	navigation.hidden = !isAuthenticatedView;
@@ -55,6 +66,54 @@ function showMessage(message) {
 	window.clearTimeout(toastTimeout);
 	toastTimeout = window.setTimeout(() => toast.classList.remove('visible'), 2600);
 }
+
+function setMapTarget(target) {
+	activeMapTarget = target;
+	document.querySelectorAll('[data-map-target]').forEach((button) => {
+		const isSelected = button.dataset.mapTarget === target;
+		button.classList.toggle('selected', isSelected);
+		button.setAttribute('aria-pressed', String(isSelected));
+	});
+	document.querySelector('#map-status').textContent = `Click the map to set ${target === 'pickup' ? 'pickup' : 'destination'}.`;
+}
+
+function selectMapLocation(latlng) {
+	mapPoints[activeMapTarget] = latlng;
+	const coordinates = `${latlng.lat.toFixed(5)}, ${latlng.lng.toFixed(5)}`;
+	const input = document.querySelector(activeMapTarget === 'pickup' ? '#pickup-location' : '#dropoff-location');
+	input.value = coordinates;
+	const pinColor = activeMapTarget === 'pickup' ? '#44d4b4' : '#f3a36f';
+	const label = activeMapTarget === 'pickup' ? 'Pickup' : 'Destination';
+	if (mapMarkers[activeMapTarget]) mapMarkers[activeMapTarget].remove();
+	mapMarkers[activeMapTarget] = L.circleMarker(latlng, {
+		radius: 8,
+		color: '#ffffff',
+		weight: 2,
+		fillColor: pinColor,
+		fillOpacity: 1,
+	}).addTo(rideMap).bindPopup(`${label}: ${coordinates}`);
+	if (mapPoints.pickup && mapPoints.destination) {
+		const points = [mapPoints.pickup, mapPoints.destination];
+		if (routeLine) routeLine.remove();
+		routeLine = L.polyline(points, { color: '#168d92', weight: 4, opacity: 0.8, dashArray: '7 8' }).addTo(rideMap);
+		rideMap.fitBounds(routeLine.getBounds().pad(0.18), { maxZoom: 15 });
+	}
+	document.querySelector('#map-status').textContent = `${label} set to ${coordinates}. Choose the other location or adjust this point.`;
+}
+
+function initializeRideMap() {
+	if (rideMap || !window.L) return;
+	rideMap = L.map('ride-map', { scrollWheelZoom: false }).setView([9.31, 123.305], 13);
+	L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+		maxZoom: 19,
+		attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+	}).addTo(rideMap);
+	rideMap.on('click', (event) => selectMapLocation(event.latlng));
+}
+
+document.querySelectorAll('[data-map-target]').forEach((button) => {
+	button.addEventListener('click', () => setMapTarget(button.dataset.mapTarget));
+});
 
 function formatDate(value, options = { dateStyle: 'medium', timeStyle: 'short' }) {
 	return new Intl.DateTimeFormat(undefined, options).format(new Date(value));
@@ -293,6 +352,14 @@ bookForm.addEventListener('submit', (event) => {
 	writeStored(storageKeys.trips, trips);
 	addUpdate('Ride request created', `Your trip from ${trip.pickup} to ${trip.destination} is in Upcoming rides.`);
 	bookForm.reset();
+	Object.keys(mapPoints).forEach((point) => {
+		mapPoints[point] = null;
+		mapMarkers[point]?.remove();
+		mapMarkers[point] = null;
+	});
+	if (routeLine) routeLine.remove();
+	routeLine = null;
+	setMapTarget('pickup');
 	renderDashboard();
 	renderRides();
 	showScreen('rides');
