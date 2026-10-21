@@ -13,6 +13,7 @@ let activeMapTarget = 'pickup';
 let routeLine;
 const mapPoints = { pickup: null, destination: null };
 const mapMarkers = { pickup: null, destination: null };
+const geocodeRequests = { pickup: 0, destination: 0 };
 
 function readStored(key, fallback) {
 	try {
@@ -92,15 +93,30 @@ function setMapTarget(target) {
 	document.querySelector('#map-status').textContent = `Click the map to set ${target === 'pickup' ? 'pickup' : 'destination'}.`;
 }
 
-function selectMapLocation(latlng) {
-	mapPoints[activeMapTarget] = latlng;
+function formatAreaName(properties) {
+	const area = properties.locality
+		|| properties.neighbourhood
+		|| properties.suburb
+		|| properties.district
+		|| properties.city_district
+		|| properties.village
+		|| properties.town
+		|| properties.city
+		|| properties.name;
+	const city = properties.city || properties.town || properties.village;
+	return [...new Set([area, city].filter(Boolean))].join(', ');
+}
+
+async function selectMapLocation(latlng) {
+	const target = activeMapTarget;
+	mapPoints[target] = latlng;
 	const coordinates = `${latlng.lat.toFixed(5)}, ${latlng.lng.toFixed(5)}`;
-	const input = document.querySelector(activeMapTarget === 'pickup' ? '#pickup-location' : '#dropoff-location');
+	const input = document.querySelector(target === 'pickup' ? '#pickup-location' : '#dropoff-location');
 	input.value = coordinates;
-	const pinColor = activeMapTarget === 'pickup' ? '#44d4b4' : '#f3a36f';
-	const label = activeMapTarget === 'pickup' ? 'Pickup' : 'Destination';
-	if (mapMarkers[activeMapTarget]) mapMarkers[activeMapTarget].remove();
-	mapMarkers[activeMapTarget] = L.circleMarker(latlng, {
+	const pinColor = target === 'pickup' ? '#44d4b4' : '#f3a36f';
+	const label = target === 'pickup' ? 'Pickup' : 'Destination';
+	if (mapMarkers[target]) mapMarkers[target].remove();
+	mapMarkers[target] = L.circleMarker(latlng, {
 		radius: 8,
 		color: '#ffffff',
 		weight: 2,
@@ -113,7 +129,25 @@ function selectMapLocation(latlng) {
 		routeLine = L.polyline(points, { color: '#168d92', weight: 4, opacity: 0.8, dashArray: '7 8' }).addTo(rideMap);
 		rideMap.fitBounds(routeLine.getBounds().pad(0.18), { maxZoom: 15 });
 	}
-	document.querySelector('#map-status').textContent = `${label} set to ${coordinates}. Choose the other location or adjust this point.`;
+	const status = document.querySelector('#map-status');
+	const requestId = ++geocodeRequests[target];
+	status.textContent = `Looking up the ${label.toLowerCase()} area…`;
+	try {
+		const response = await fetch(`https://photon.komoot.io/reverse?lat=${latlng.lat}&lon=${latlng.lng}`);
+		if (!response.ok) throw new Error('Area lookup failed');
+		const result = await response.json();
+		if (geocodeRequests[target] !== requestId) return;
+		const properties = result.features?.[0]?.properties;
+		const areaName = properties ? formatAreaName(properties) : '';
+		if (!areaName) throw new Error('No area found');
+		input.value = areaName;
+		mapMarkers[target].setPopupContent(`${label}: ${areaName}`);
+		status.textContent = `${label} set to ${areaName}. Choose the other location or adjust this point.`;
+	} catch {
+		if (geocodeRequests[target] !== requestId) return;
+		mapMarkers[target].setPopupContent(`${label}: ${coordinates}`);
+		status.textContent = `Area lookup unavailable. ${label} coordinates kept as ${coordinates}.`;
+	}
 }
 
 function initializeRideMap() {
