@@ -27,6 +27,21 @@ function writeStored(key, value) {
 	localStorage.setItem(key, JSON.stringify(value));
 }
 
+function applyTheme(theme) {
+	const activeTheme = theme === 'light' ? 'light' : 'dark';
+	const isLight = activeTheme === 'light';
+	document.documentElement.dataset.theme = activeTheme;
+	const toggle = document.querySelector('#theme-toggle');
+	const actionLabel = `Switch to ${isLight ? 'dark' : 'light'} mode`;
+	toggle.setAttribute('aria-pressed', String(isLight));
+	toggle.setAttribute('aria-label', actionLabel);
+	toggle.title = actionLabel;
+	toggle.querySelector('.theme-toggle-label').textContent = `${activeTheme[0].toUpperCase()}${activeTheme.slice(1)} mode`;
+	toggle.querySelector('.theme-toggle-icon').textContent = isLight ? '☾' : '☼';
+	document.querySelector('meta[name="theme-color"]').content = isLight ? '#edf4f6' : '#092b45';
+	return activeTheme;
+}
+
 let profile = readStored(storageKeys.profile, {
 	fullName: 'Passenger',
 	email: '',
@@ -297,6 +312,14 @@ document.querySelectorAll('.role-option').forEach((button) => {
 			option.setAttribute('aria-pressed', String(isSelected));
 		});
 	});
+});
+
+const themeToggle = document.querySelector('#theme-toggle');
+applyTheme(readStored('localTransportTheme', 'dark'));
+themeToggle.addEventListener('click', () => {
+	const nextTheme = document.documentElement.dataset.theme === 'light' ? 'dark' : 'light';
+	writeStored('localTransportTheme', nextTheme);
+	applyTheme(nextTheme);
 });
 
 document.querySelector('#login-form').addEventListener('submit', (event) => {
