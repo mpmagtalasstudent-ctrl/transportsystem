@@ -1,13 +1,13 @@
 const screens = [...document.querySelectorAll('.screen')];
 const toast = document.querySelector('.toast');
 const navigation = document.querySelector('.bottom-nav');
-const storageKeys = {
-	profile: 'localTransportProfile',
-	trips: 'localTransportTrips',
-	updates: 'localTransportUpdates',
-};
+const supabaseClient = window.supabase.createClient(
+	window.SUPABASE_CONFIG.url,
+	window.SUPABASE_CONFIG.publishableKey,
+);
 let toastTimeout;
 let activeRideFilter = 'upcoming';
+let currentUser = null;
 let rideMap;
 let activeMapTarget = 'pickup';
 let routeLine;
@@ -43,15 +43,79 @@ function applyTheme(theme) {
 	return activeTheme;
 }
 
-let profile = readStored(storageKeys.profile, {
+let profile = {
 	fullName: 'Passenger',
 	email: '',
 	mobile: '',
 	municipality: '',
 	barangay: '',
-});
-let trips = readStored(storageKeys.trips, []);
-let updates = readStored(storageKeys.updates, []);
+};
+let trips = [];
+let updates = [];
+
+function mapProfileRow(row) {
+	return {
+		fullName: row.full_name,
+		email: row.email,
+		mobile: row.mobile,
+		municipality: row.municipality,
+		barangay: row.barangay,
+	};
+}
+
+function mapTripRow(row) {
+	return {
+		id: row.id,
+		pickup: row.pickup,
+		destination: row.destination,
+		pickupAt: row.pickup_at,
+		rideType: row.ride_type,
+		notes: row.notes,
+		status: row.status.charAt(0).toUpperCase() + row.status.slice(1),
+		fare: Number(row.fare),
+		createdAt: row.created_at,
+	};
+}
+
+function mapNotificationRow(row) {
+	return {
+		id: row.id,
+		title: row.title,
+		message: row.message,
+		createdAt: row.created_at,
+		read: row.is_read,
+	};
+}
+
+async function loadUserData(user) {
+	const [profileResult, tripsResult, updatesResult] = await Promise.all([
+		supabaseClient.from('profiles').select('*').eq('id', user.id).single(),
+		supabaseClient.from('trips').select('*').eq('passenger_id', user.id).order('created_at', { ascending: false }),
+		supabaseClient.from('notifications').select('*').eq('user_id', user.id).order('created_at', { ascending: false }),
+	]);
+	if (profileResult.error) throw profileResult.error;
+	if (tripsResult.error) throw tripsResult.error;
+	if (updatesResult.error) throw updatesResult.error;
+	profile = mapProfileRow(profileResult.data);
+	trips = tripsResult.data.map(mapTripRow);
+	updates = updatesResult.data.map(mapNotificationRow);
+	renderProfile();
+	renderDashboard();
+	renderRides();
+	renderUpdates();
+}
+
+function clearUserData() {
+	currentUser = null;
+	profile = { fullName: 'Passenger', email: '', mobile: '', municipality: '', barangay: '' };
+	trips = [];
+	updates = [];
+	renderProfile();
+	renderDashboard();
+	renderRides();
+	renderUpdates();
+	showScreen('login');
+}
 
 function showScreen(screenName) {
 	screens.forEach((screen) => {
@@ -181,9 +245,14 @@ function addEmptyState(container, icon, title, description) {
 	container.className = 'empty-state';
 }
 
-function addUpdate(title, message) {
-	updates.unshift({ id: Date.now(), title, message, createdAt: new Date().toISOString(), read: false });
-	writeStored(storageKeys.updates, updates);
+async function addUpdate(title, message) {
+	const { data, error } = await supabaseClient
+		.from('notifications')
+		.insert({ user_id: currentUser.id, title, message })
+		.select('*')
+		.single();
+	if (error) throw error;
+	updates.unshift(mapNotificationRow(data));
 	renderUpdates();
 }
 
@@ -358,9 +427,24 @@ themeToggle.addEventListener('click', () => {
 
 document.querySelector('#login-form').addEventListener('submit', (event) => {
 	event.preventDefault();
-	renderProfile();
-	renderDashboard();
-	showScreen('dashboard');
+	void (async () => {
+		const formData = new FormData(event.currentTarget);
+		const { data, error } = await supabaseClient.auth.signInWithPassword({
+			email: formData.get('identity').trim(),
+			password: formData.get('password'),
+		});
+		if (error) {
+			showMessage(error.message);
+			return;
+		}
+		currentUser = data.user;
+		try {
+			await loadUserData(currentUser);
+			showScreen('dashboard');
+		} catch (loadError) {
+			showMessage(`Signed in, but couldn't load your data: ${loadError.message}`);
+		}
+	})();
 });
 
 const accountForm = document.querySelector('#account-form');
@@ -376,14 +460,41 @@ confirmPassword.addEventListener('input', validatePasswordMatch);
 
 accountForm.addEventListener('submit', (event) => {
 	event.preventDefault();
-	profile = Object.fromEntries(new FormData(accountForm));
-	delete profile.password;
-	delete profile.confirmPassword;
-	delete profile.terms;
-	writeStored(storageKeys.profile, profile);
-	renderProfile();
-	renderDashboard();
-	showScreen('dashboard');
+	void (async () => {
+		const formData = new FormData(accountForm);
+		const emailRedirectTo = window.location.protocol === 'file:'
+			? undefined
+			: `${window.location.origin}${window.location.pathname}`;
+		const { data, error } = await supabaseClient.auth.signUp({
+			email: formData.get('email').trim(),
+			password: formData.get('password'),
+			options: {
+				...(emailRedirectTo ? { emailRedirectTo } : {}),
+				data: {
+					full_name: formData.get('fullName').trim(),
+					mobile: formData.get('mobile').trim(),
+					municipality: formData.get('municipality').trim(),
+					barangay: formData.get('barangay').trim(),
+				},
+			},
+		});
+		if (error) {
+			showMessage(error.message);
+			return;
+		}
+		if (!data.session || !data.user) {
+			showScreen('login');
+			showMessage('Account created. Check your email to confirm it, then log in.');
+			return;
+		}
+		currentUser = data.user;
+		try {
+			await loadUserData(currentUser);
+			showScreen('dashboard');
+		} catch (loadError) {
+			showMessage(`Account created, but couldn't load your profile: ${loadError.message}`);
+		}
+	})();
 });
 
 const bookForm = document.querySelector('#book-form');
@@ -393,34 +504,43 @@ dateInput.min = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(
 
 bookForm.addEventListener('submit', (event) => {
 	event.preventDefault();
-	const formData = new FormData(bookForm);
-	const trip = {
-		id: Date.now(),
-		pickup: formData.get('pickup').trim(),
-		destination: formData.get('destination').trim(),
-		pickupAt: new Date(`${formData.get('date')}T${formData.get('time')}`).toISOString(),
-		rideType: formData.get('rideType'),
-		notes: formData.get('notes').trim(),
-		status: 'Upcoming',
-		fare: 0,
-		createdAt: new Date().toISOString(),
-	};
-	trips.unshift(trip);
-	writeStored(storageKeys.trips, trips);
-	addUpdate('Ride request created', `Your trip from ${trip.pickup} to ${trip.destination} is in Upcoming rides.`);
-	bookForm.reset();
-	Object.keys(mapPoints).forEach((point) => {
-		mapPoints[point] = null;
-		mapMarkers[point]?.remove();
-		mapMarkers[point] = null;
-	});
-	if (routeLine) routeLine.remove();
-	routeLine = null;
-	setMapTarget('pickup');
-	renderDashboard();
-	renderRides();
-	showScreen('rides');
-	showMessage('Ride request added to Upcoming rides.');
+	void (async () => {
+		const formData = new FormData(bookForm);
+		const tripInput = {
+			passenger_id: currentUser.id,
+			pickup: formData.get('pickup').trim(),
+			destination: formData.get('destination').trim(),
+			pickup_at: new Date(`${formData.get('date')}T${formData.get('time')}`).toISOString(),
+			ride_type: formData.get('rideType'),
+			notes: formData.get('notes').trim(),
+		};
+		const { data, error } = await supabaseClient.from('trips').insert(tripInput).select('*').single();
+		if (error) {
+			showMessage(error.message);
+			return;
+		}
+		const trip = mapTripRow(data);
+		trips.unshift(trip);
+		let successMessage = 'Ride request added to Upcoming rides.';
+		try {
+			await addUpdate('Ride request created', `Your trip from ${trip.pickup} to ${trip.destination} is in Upcoming rides.`);
+		} catch {
+			successMessage = 'Ride saved, but its notification could not be created.';
+		}
+		bookForm.reset();
+		Object.keys(mapPoints).forEach((point) => {
+			mapPoints[point] = null;
+			mapMarkers[point]?.remove();
+			mapMarkers[point] = null;
+		});
+		if (routeLine) routeLine.remove();
+		routeLine = null;
+		setMapTarget('pickup');
+		renderDashboard();
+		renderRides();
+		showScreen('rides');
+		showMessage(successMessage);
+	})();
 });
 
 document.querySelectorAll('[data-ride-filter]').forEach((button) => {
@@ -435,36 +555,97 @@ document.querySelector('#ride-list').addEventListener('click', (event) => {
 	if (!cancelButton) return;
 	const trip = trips.find((item) => String(item.id) === cancelButton.dataset.cancelTrip);
 	if (!trip) return;
-	trip.status = 'Cancelled';
-	writeStored(storageKeys.trips, trips);
-	addUpdate('Ride request cancelled', `Your trip from ${trip.pickup} to ${trip.destination} was cancelled.`);
-	renderDashboard();
-	renderRides();
-	showMessage('Ride request cancelled.');
+	void (async () => {
+		const { error } = await supabaseClient.from('trips').update({ status: 'cancelled' }).eq('id', trip.id);
+		if (error) {
+			showMessage(error.message);
+			return;
+		}
+		trip.status = 'Cancelled';
+		let successMessage = 'Ride request cancelled.';
+		try {
+			await addUpdate('Ride request cancelled', `Your trip from ${trip.pickup} to ${trip.destination} was cancelled.`);
+		} catch {
+			successMessage = 'Ride cancelled, but its notification could not be created.';
+		}
+		renderDashboard();
+		renderRides();
+		showMessage(successMessage);
+	})();
 });
 
 document.querySelector('#mark-updates-read').addEventListener('click', () => {
-	updates = updates.map((update) => ({ ...update, read: true }));
-	writeStored(storageKeys.updates, updates);
-	renderUpdates();
-	showMessage('Updates marked as read.');
+	void (async () => {
+		const { error } = await supabaseClient
+			.from('notifications')
+			.update({ is_read: true })
+			.eq('user_id', currentUser.id)
+			.eq('is_read', false);
+		if (error) {
+			showMessage(error.message);
+			return;
+		}
+		updates = updates.map((update) => ({ ...update, read: true }));
+		renderUpdates();
+		showMessage('Updates marked as read.');
+	})();
 });
 
 document.querySelector('#profile-form').addEventListener('submit', (event) => {
 	event.preventDefault();
-	profile = Object.fromEntries(new FormData(event.currentTarget));
-	writeStored(storageKeys.profile, profile);
-	renderProfile();
-	showMessage('Profile saved.');
+	void (async () => {
+		const formData = new FormData(event.currentTarget);
+		const { data, error } = await supabaseClient
+			.from('profiles')
+			.update({
+				full_name: formData.get('fullName').trim(),
+				mobile: formData.get('mobile').trim(),
+				municipality: formData.get('municipality').trim(),
+				barangay: formData.get('barangay').trim(),
+			})
+			.eq('id', currentUser.id)
+			.select('*')
+			.single();
+		if (error) {
+			showMessage(error.message);
+			return;
+		}
+		profile = mapProfileRow(data);
+		renderProfile();
+		showMessage('Profile saved.');
+	})();
 });
 
 document.querySelector('#logout-button').addEventListener('click', () => {
-	document.querySelector('#login-form').reset();
-	showScreen('login');
+	void supabaseClient.auth.signOut().then(({ error }) => {
+		if (error) {
+			showMessage(error.message);
+			return;
+		}
+		clearUserData();
+		document.querySelector('#login-form').reset();
+	});
 });
 
-renderProfile();
-renderDashboard();
-renderRides();
-renderUpdates();
-showScreen('login');
+supabaseClient.auth.onAuthStateChange((event) => {
+	if (event === 'SIGNED_OUT') clearUserData();
+});
+
+async function initializeAuth() {
+	showScreen('login');
+	const { data, error } = await supabaseClient.auth.getSession();
+	if (error) {
+		showMessage(error.message);
+		return;
+	}
+	if (!data.session) return;
+	currentUser = data.session.user;
+	try {
+		await loadUserData(currentUser);
+		showScreen('dashboard');
+	} catch (loadError) {
+		showMessage(`Couldn't load your account: ${loadError.message}`);
+	}
+}
+
+void initializeAuth();

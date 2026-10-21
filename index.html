@@ -41,8 +41,8 @@
                     </div>
 
                     <form class="form-stack" id="login-form">
-                        <label for="login-identity">Email or mobile number</label>
-                        <div class="input-wrap"><span aria-hidden="true">✉</span><input id="login-identity" name="identity" type="text" autocomplete="username" placeholder="you@example.com" required></div>
+                        <label for="login-identity">Email address</label>
+                        <div class="input-wrap"><span aria-hidden="true">✉</span><input id="login-identity" name="identity" type="email" autocomplete="username" placeholder="you@example.com" required></div>
                         <label for="login-password">Password</label>
                         <div class="input-wrap"><span aria-hidden="true">⌑</span><input id="login-password" name="password" type="password" autocomplete="current-password" placeholder="Enter your password" required></div>
                         <div class="form-options">
@@ -196,7 +196,7 @@
                         <label for="profile-name">Full name</label><input id="profile-name" name="fullName" type="text" autocomplete="name" required>
                         <div class="field-pair">
                             <div><label for="profile-mobile">Mobile number</label><input id="profile-mobile" name="mobile" type="tel" autocomplete="tel" required></div>
-                            <div><label for="profile-email">Email</label><input id="profile-email" name="email" type="email" autocomplete="email" required></div>
+                            <div><label for="profile-email">Email</label><input id="profile-email" name="email" type="email" autocomplete="email" readonly></div>
                         </div>
                         <div class="field-pair">
                             <div><label for="profile-city">Municipality / city</label><input id="profile-city" name="municipality" type="text" autocomplete="address-level2"></div>
@@ -218,6 +218,8 @@
         <div class="toast" role="status" aria-live="polite"></div>
     </main>
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabase-config.js"></script>
     <script src="script.js"></script>
 </body>
 </html>
