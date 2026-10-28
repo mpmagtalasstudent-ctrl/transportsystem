@@ -1,10 +1,14 @@
 const screens = [...document.querySelectorAll('.screen')];
 const toast = document.querySelector('.toast');
 const navigation = document.querySelector('.bottom-nav');
-const supabaseClient = window.supabase.createClient(
-	window.SUPABASE_CONFIG.url,
-	window.SUPABASE_CONFIG.publishableKey,
-);
+const supabaseClient = window.__LOCAL_TRANSPORT_SUPABASE_CLIENT || (() => {
+	const client = window.supabase.createClient(
+		window.SUPABASE_CONFIG.url,
+		window.SUPABASE_CONFIG.publishableKey,
+	);
+	window.__LOCAL_TRANSPORT_SUPABASE_CLIENT = client;
+	return client;
+})();
 let toastTimeout;
 let activeRideFilter = 'upcoming';
 let currentUser = null;
@@ -75,6 +79,12 @@ function mapTripRow(row) {
 		fare: Number(row.fare),
 		createdAt: row.created_at,
 	};
+}
+
+function normalizeRideType(value) {
+	const allowedTypes = ['Tricycle', 'Motorcycle', 'Bus', 'Car'];
+	const rideType = String(value ?? 'Tricycle').trim();
+	return allowedTypes.includes(rideType) ? rideType : 'Tricycle';
 }
 
 function mapNotificationRow(row) {
@@ -525,7 +535,7 @@ bookForm.addEventListener('submit', (event) => {
 			pickup: formData.get('pickup').trim(),
 			destination: formData.get('destination').trim(),
 			pickup_at: new Date(`${formData.get('date')}T${formData.get('time')}`).toISOString(),
-			ride_type: formData.get('rideType'),
+			ride_type: normalizeRideType(formData.get('rideType')),
 			notes: formData.get('notes').trim(),
 		};
 		const { data, error } = await supabaseClient.from('trips').insert(tripInput).select('*').single();
