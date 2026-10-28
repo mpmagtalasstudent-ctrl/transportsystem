@@ -14,7 +14,7 @@ create table if not exists public.trips (
 	pickup text not null,
 	destination text not null,
 	pickup_at timestamptz not null,
-	ride_type text not null check (ride_type in ('Standard', 'Shared', 'Private')),
+	ride_type text not null check (ride_type in ('Tricycle', 'Motorcycle', 'Bus', 'Car')),
 	notes text not null default '',
 	status text not null default 'upcoming' check (status in ('upcoming', 'cancelled', 'completed')),
 	fare numeric(10, 2) not null default 0 check (fare >= 0),

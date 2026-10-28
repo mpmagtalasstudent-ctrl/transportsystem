@@ -217,6 +217,20 @@ async function selectMapLocation(latlng) {
 function initializeRideMap() {
 	if (rideMap || !window.L) return;
 	rideMap = L.map('ride-map', { scrollWheelZoom: false }).setView([9.31, 123.305], 13);
+	const mapContainer = rideMap.getContainer();
+	mapContainer.addEventListener('wheel', (event) => {
+		event.preventDefault();
+	}, { passive: false });
+	mapContainer.addEventListener('mousedown', (event) => {
+		if (event.button === 1) {
+			event.preventDefault();
+		}
+	}, { passive: false });
+	mapContainer.addEventListener('auxclick', (event) => {
+		if (event.button === 1) {
+			event.preventDefault();
+		}
+	}, { passive: false });
 	L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
 		maxZoom: 19,
 		attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',

@@ -941,6 +941,7 @@ h2 {
 	border: 1px solid rgba(14, 47, 67, 0.3);
 	border-radius: 6px;
 	background: #dbe7e6;
+	touch-action: none;
 }
 
 #ride-map .leaflet-control-attribution {
