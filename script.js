@@ -226,11 +226,8 @@ async function selectMapLocation(latlng) {
 
 function initializeRideMap() {
 	if (rideMap || !window.L) return;
-	rideMap = L.map('ride-map', { scrollWheelZoom: false }).setView([9.31, 123.305], 13);
+	rideMap = L.map('ride-map', { scrollWheelZoom: true }).setView([9.31, 123.305], 13);
 	const mapContainer = rideMap.getContainer();
-	mapContainer.addEventListener('wheel', (event) => {
-		event.preventDefault();
-	}, { passive: false });
 	mapContainer.addEventListener('mousedown', (event) => {
 		if (event.button === 1) {
 			event.preventDefault();
